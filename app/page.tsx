@@ -151,9 +151,8 @@ export default function Home() {
       raw.sort((a, b) => b.importance.level - a.importance.level);
       setNews(raw);
       setLastUpdate(new Date());
-   } catch (error) {
-    console.error("Erreur fetch:", error);
-    setNews([]);
+    } catch {
+      setNews([]);
     }
     setLoading(false);
     setRefreshing(false);
@@ -171,6 +170,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-start justify-center py-0 sm:py-6 px-0 sm:px-2">
       <div className="w-full max-w-sm bg-white sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col" style={{ minHeight: "100svh" }}>
 
+        {/* HEADER */}
         <div className="bg-slate-900 px-4 pt-4 pb-3 flex-shrink-0">
           <div className="flex justify-between items-center mb-1">
             <div>
@@ -183,7 +183,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-end gap-1.5">
               <button onClick={fetchNews} disabled={false}
-                className="flex items-center gap-1.5 text-slate-300 text-xs border border-slate-700 bg-slate-800 px-3 py-1.5 rounded-full hover:bg-slate-700 active:scale-95 transition disabled:opacity-50">
+                className="flex items-center gap-1.5 text-slate-300 text-xs border border-slate-700 bg-slate-800 px-3 py-1.5 rounded-full hover:bg-slate-700 active:scale-95 transition">
                 <span className={refreshing ? "animate-spin inline-block" : "inline-block"}>↻</span>
                 <span>{refreshing ? "Chargement…" : "Refresh"}</span>
               </button>
@@ -200,6 +200,7 @@ export default function Home() {
           )}
         </div>
 
+        {/* TABS */}
         <div className="bg-slate-900 flex border-b border-slate-800 flex-shrink-0">
           {(["home", "markets", "favorites"] as Tab[]).map(t => (
             <button key={t} onClick={() => { setTab(t); setSelected(null); }}
@@ -209,6 +210,7 @@ export default function Home() {
           ))}
         </div>
 
+        {/* PUB PLEIN ÉCRAN */}
         {showAd && !isPremium && (
           <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-5 w-full max-w-xs text-center shadow-2xl">
@@ -223,6 +225,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* HOME */}
         {tab === "home" && (
           <div className="flex-1 bg-slate-50 overflow-y-auto">
             {selected ? (
@@ -299,6 +302,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* MARCHÉS */}
         {tab === "markets" && (
           <div className="flex-1 bg-slate-50 overflow-y-auto p-3">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1 mb-2 mt-1">Indices boursiers</p>
@@ -342,6 +346,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* FAVORIS */}
         {tab === "favorites" && (
           <div className="flex-1 bg-slate-50 overflow-y-auto p-3">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1 mb-2 mt-1">Mes actifs suivis</p>
@@ -378,6 +383,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* BANNIÈRE PUB */}
         {!isPremium && (
           <div className="bg-slate-100 border-t border-slate-200 px-3 py-2 flex items-center justify-between flex-shrink-0">
             <span className="text-slate-400 text-[10px]">Pub</span>
@@ -386,6 +392,18 @@ export default function Home() {
           </div>
         )}
 
+        {/* LIEN PRIVACY */}
+        <div className="bg-white px-4 py-2 flex justify-center gap-4 border-t border-slate-100 flex-shrink-0">
+          <a href="/privacy" className="text-xs text-slate-400 hover:text-sky-500 transition">
+            Politique de confidentialité
+          </a>
+          <span className="text-slate-200">|</span>
+          <a href="/privacy" className="text-xs text-slate-400 hover:text-sky-500 transition">
+            Mentions légales
+          </a>
+        </div>
+
+        {/* BOTTOM NAV */}
         <div className="bg-white border-t border-slate-200 flex py-2 flex-shrink-0">
           {([
             { id: "home" as Tab, label: "Accueil", svgPath: <><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></> },

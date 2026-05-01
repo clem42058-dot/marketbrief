@@ -151,7 +151,6 @@ export default function Home() {
   useEffect(() => {
     OneSignal.init({
       appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
-      notifyButton: { enable: false },
       allowLocalhostAsSecureOrigin: true,
     }).catch(() => {});
   }, []);

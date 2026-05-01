@@ -47,6 +47,9 @@ interface NewsItem {
   sector: string; impact: ReturnType<typeof getImpact>;
   importance: ReturnType<typeof getImportance>; time: string; minutesAgo: number;
 }
+interface MarketItem {
+  symbol: string; price: number; prev: number;
+}
 type Tab = "home" | "markets" | "favorites";
 
 const FAVS = ["NVDA", "AAPL", "TSLA", "BTC", "ETH"];
@@ -55,17 +58,15 @@ const FAV_KEYWORDS: Record<string, string[]> = {
   BTC: ["bitcoin", "btc"], ETH: ["ethereum", "eth"],
 };
 
-const MARKETS = [
-  { name: "S&P 500", sub: "US", val: 5248.39, prev: 5226.00 },
-  { name: "NASDAQ", sub: "US Tech", val: 16421.80, prev: 16278.00 },
-  { name: "CAC 40", sub: "France", val: 7912.55, prev: 7929.00 },
-  { name: "DAX", sub: "Allemagne", val: 18134.20, prev: 18078.00 },
-];
-const CRYPTOS = [
-  { name: "Bitcoin", sub: "BTC", val: 95140, prev: 93100, unit: "$" },
-  { name: "Ethereum", sub: "ETH", val: 3182, prev: 3200, unit: "$" },
-  { name: "Solana", sub: "SOL", val: 172, prev: 168, unit: "$" },
-];
+const SYMBOL_LABELS: Record<string, { name: string; sub: string; unit: string }> = {
+  "^GSPC":   { name: "S&P 500",  sub: "US",         unit: "" },
+  "^IXIC":   { name: "NASDAQ",   sub: "US Tech",     unit: "" },
+  "^FCHI":   { name: "CAC 40",   sub: "France",      unit: "" },
+  "^GDAXI":  { name: "DAX",      sub: "Allemagne",   unit: "" },
+  "BTC-USD": { name: "Bitcoin",  sub: "BTC/USD",     unit: "$" },
+  "ETH-USD": { name: "Ethereum", sub: "ETH/USD",     unit: "$" },
+  "SOL-USD": { name: "Solana",   sub: "SOL/USD",     unit: "$" },
+};
 
 function Spark({ up }: { up: boolean }) {
   const color = up ? "#16a34a" : "#dc2626";
@@ -82,6 +83,8 @@ function Spark({ up }: { up: boolean }) {
 export default function Home() {
   const [tab, setTab] = useState<Tab>("home");
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [markets, setMarkets] = useState<MarketItem[]>([]);
+  const [loadingMarkets, setLoadingMarkets] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<NewsItem | null>(null);
   const [activeFav, setActiveFav] = useState("NVDA");
@@ -123,6 +126,18 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [notifSent]);
 
+  const fetchMarkets = useCallback(async () => {
+    setLoadingMarkets(true);
+    try {
+      const res = await fetch("/api/markets");
+      const data = await res.json();
+      setMarkets(data);
+    } catch {
+      setMarkets([]);
+    }
+    setLoadingMarkets(false);
+  }, []);
+
   const fetchNews = useCallback(async () => {
     setLoading(true);
     setRefreshing(true);
@@ -159,12 +174,14 @@ export default function Home() {
     if (!isPremium) setShowAd(s => !s);
   }, [isPremium]);
 
-  useEffect(() => { fetchNews(); }, [fetchNews]);
+  useEffect(() => { fetchNews(); fetchMarkets(); }, [fetchNews, fetchMarkets]);
 
   const favNews = news.filter(n =>
     FAV_KEYWORDS[activeFav]?.some(kw => (n.title + n.summary).toLowerCase().includes(kw))
   );
   const breakingCount = news.filter(n => n.importance.level === 2).length;
+  const indices = markets.filter(m => ["^GSPC","^IXIC","^FCHI","^GDAXI"].includes(m.symbol));
+  const cryptos = markets.filter(m => ["BTC-USD","ETH-USD","SOL-USD"].includes(m.symbol));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-start justify-center py-0 sm:py-6 px-0 sm:px-2">
@@ -182,7 +199,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-col items-end gap-1.5">
-              <button onClick={fetchNews} disabled={false}
+              <button onClick={() => { fetchNews(); fetchMarkets(); }} disabled={false}
                 className="flex items-center gap-1.5 text-slate-300 text-xs border border-slate-700 bg-slate-800 px-3 py-1.5 rounded-full hover:bg-slate-700 active:scale-95 transition">
                 <span className={refreshing ? "animate-spin inline-block" : "inline-block"}>↻</span>
                 <span>{refreshing ? "Chargement…" : "Refresh"}</span>
@@ -307,16 +324,26 @@ export default function Home() {
           <div className="flex-1 bg-slate-50 overflow-y-auto p-3">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1 mb-2 mt-1">Indices boursiers</p>
             <div className="flex flex-col gap-2 mb-4">
-              {MARKETS.map((m, i) => {
-                const chg = ((m.val - m.prev) / m.prev) * 100;
+              {loadingMarkets ? (
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl p-3 animate-pulse border border-slate-100">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-20 bg-slate-200 rounded"></div>
+                      <div className="h-4 w-16 bg-slate-200 rounded"></div>
+                    </div>
+                  </div>
+                ))
+              ) : indices.map((m, i) => {
+                const label = SYMBOL_LABELS[m.symbol];
+                const chg = m.prev ? ((m.price - m.prev) / m.prev) * 100 : 0;
                 const up = chg >= 0;
                 return (
                   <div key={i} className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between">
-                    <div><p className="text-sm font-semibold text-slate-800">{m.name}</p><p className="text-xs text-slate-400">{m.sub}</p></div>
+                    <div><p className="text-sm font-semibold text-slate-800">{label.name}</p><p className="text-xs text-slate-400">{label.sub}</p></div>
                     <div className="flex items-center gap-3">
                       <Spark up={up} />
-                      <div className="text-right min-w-[70px]">
-                        <p className="text-sm font-bold text-slate-800">{m.val.toLocaleString("fr-FR")}</p>
+                      <div className="text-right min-w-[80px]">
+                        <p className="text-sm font-bold text-slate-800">{m.price?.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</p>
                         <p className={`text-xs font-semibold ${up ? "text-emerald-600" : "text-red-500"}`}>{up ? "▲" : "▼"} {Math.abs(chg).toFixed(2)}%</p>
                       </div>
                     </div>
@@ -326,16 +353,26 @@ export default function Home() {
             </div>
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1 mb-2">Crypto</p>
             <div className="flex flex-col gap-2">
-              {CRYPTOS.map((m, i) => {
-                const chg = ((m.val - m.prev) / m.prev) * 100;
+              {loadingMarkets ? (
+                [...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl p-3 animate-pulse border border-slate-100">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-20 bg-slate-200 rounded"></div>
+                      <div className="h-4 w-16 bg-slate-200 rounded"></div>
+                    </div>
+                  </div>
+                ))
+              ) : cryptos.map((m, i) => {
+                const label = SYMBOL_LABELS[m.symbol];
+                const chg = m.prev ? ((m.price - m.prev) / m.prev) * 100 : 0;
                 const up = chg >= 0;
                 return (
                   <div key={i} className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex items-center justify-between">
-                    <div><p className="text-sm font-semibold text-slate-800">{m.name}</p><p className="text-xs text-slate-400">{m.sub}/USD</p></div>
+                    <div><p className="text-sm font-semibold text-slate-800">{label.name}</p><p className="text-xs text-slate-400">{label.sub}</p></div>
                     <div className="flex items-center gap-3">
                       <Spark up={up} />
-                      <div className="text-right min-w-[80px]">
-                        <p className="text-sm font-bold text-slate-800">{m.val.toLocaleString("fr-FR")} {m.unit}</p>
+                      <div className="text-right min-w-[90px]">
+                        <p className="text-sm font-bold text-slate-800">{m.price?.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} {label.unit}</p>
                         <p className={`text-xs font-semibold ${up ? "text-emerald-600" : "text-red-500"}`}>{up ? "▲" : "▼"} {Math.abs(chg).toFixed(2)}%</p>
                       </div>
                     </div>

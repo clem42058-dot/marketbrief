@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import OneSignal from "react-onesignal";
 
 const TRANSLATIONS = {
   fr: {
@@ -118,7 +119,6 @@ function Spark({ up }: { up: boolean }) {
   );
 }
 
-// Icône SVG réglages (engrenage)
 function SettingsIcon({ active, dark }: { active: boolean; dark: boolean }) {
   const color = active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8";
   return (
@@ -142,11 +142,19 @@ export default function Home() {
   const [lastUpdateDisplay, setLastUpdateDisplay] = useState("");
   const [isPremium] = useState(false);
   const [showAd, setShowAd] = useState(false);
-  const [notifSent, setNotifSent] = useState(false);
   const [dark, setDark] = useState(false);
   const [lang, setLang] = useState<Lang>("fr");
 
   const t = TRANSLATIONS[lang];
+
+  // ✅ ONESIGNAL — initialisation au démarrage
+  useEffect(() => {
+    OneSignal.init({
+      appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
+      notifyButton: { enable: true },
+      allowLocalhostAsSecureOrigin: true,
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const savedDark = localStorage.getItem("mb_dark");
@@ -170,24 +178,6 @@ export default function Home() {
     const id = setInterval(tick, 30000);
     return () => clearInterval(id);
   }, [lastUpdate, lang]);
-
-  useEffect(() => {
-    if (notifSent) return;
-    const timer = setTimeout(() => {
-      if ("Notification" in window) {
-        Notification.requestPermission().then(perm => {
-          if (perm === "granted") {
-            new Notification("MarketBrief 📊", {
-              body: lang === "fr" ? "3 infos importantes peuvent impacter les marchés aujourd'hui." : "3 important news may impact markets today.",
-              icon: "/favicon.ico",
-            });
-          }
-        });
-      }
-      setNotifSent(true);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notifSent, lang]);
 
   const fetchMarkets = useCallback(async () => {
     setLoadingMarkets(true);

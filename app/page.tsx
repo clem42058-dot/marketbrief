@@ -2,6 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import OneSignal from "react-onesignal";
 
+const STRIPE_MONTHLY = "https://buy.stripe.com/test_dRm6oG6UgeHt2tvgwuenS00";
+const STRIPE_ANNUAL  = "https://buy.stripe.com/test_7sYbJ0emIfLx7NP1BAenS01";
+
 const TRANSLATIONS = {
   fr: {
     home: "Accueil", markets: "Marchés", favorites: "Favoris", settings: "Réglages",
@@ -20,7 +23,7 @@ const TRANSLATIONS = {
     darkModeDesc: "Interface sombre pour les yeux", language: "Langue",
     languageDesc: "Choisir la langue de l'interface",
     settingsInfo: "Les réglages sont sauvegardés automatiquement.",
-    close: "Fermer", discoverPremium: "Découvrir Premium",
+    close: "Fermer",
     monthlyPlan: "Mensuel", annualPlan: "Annuel",
     monthlyPrice: "9,99€/mois", annualPrice: "79,99€/an",
     annualSaving: "Économise 40%", choosePlan: "Choisir ce plan",
@@ -46,7 +49,7 @@ const TRANSLATIONS = {
     darkModeDesc: "Easy on the eyes", language: "Language",
     languageDesc: "Choose interface language",
     settingsInfo: "Settings are saved automatically.",
-    close: "Close", discoverPremium: "Discover Premium",
+    close: "Close",
     monthlyPlan: "Monthly", annualPlan: "Annual",
     monthlyPrice: "€9.99/month", annualPrice: "€79.99/year",
     annualSaving: "Save 40%", choosePlan: "Choose this plan",
@@ -122,10 +125,6 @@ const SYMBOL_LABELS: Record<string, { name: string; sub: string; unit: string }>
   "ETH-USD": { name: "Ethereum", sub: "ETH/USD",   unit: "$" },
   "SOL-USD": { name: "Solana",   sub: "SOL/USD",   unit: "$" },
 };
-
-// ⚠️ Liens Stripe — remplace par les vrais liens quand tu passes en mode live
-const STRIPE_MONTHLY = "https://buy.stripe.com/test_dRm6oG6UgeHt2tvgwuenS00";
-const STRIPE_ANNUAL  = "https://buy.stripe.com/test_7sYbJ0emIfLx7NP1BAenS01";
 
 function Spark({ up }: { up: boolean }) {
   const color = up ? "#16a34a" : "#dc2626";
@@ -253,14 +252,12 @@ export default function Home() {
   const NAV_ITEMS = [
     { id: "home" as Tab, label: t.home, icon: (active: boolean) => (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
-        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
-        <path d="M9 21V12h6v9"/>
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/>
       </svg>
     )},
     { id: "markets" as Tab, label: t.markets, icon: (active: boolean) => (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-        <polyline points="16 7 22 7 22 13"/>
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
       </svg>
     )},
     { id: "favorites" as Tab, label: t.favorites, icon: (active: boolean) => (
@@ -522,19 +519,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* PREMIUM */}
+            {/* Premium */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>Premium</p>
             <div className={`${card} rounded-xl border p-4 mb-3`}>
-
-              {/* Avantages */}
-              <p className={`text-sm font-bold mb-3 ${textPrimary}`}>✨ {t.premium}</p>
+              <p className={`text-sm font-bold mb-3 ${textPrimary}`}>{t.premium}</p>
               <div className="flex flex-col gap-1.5 mb-4">
                 {[t.premiumFeature1, t.premiumFeature2, t.premiumFeature3, t.premiumFeature4].map((f, i) => (
                   <p key={i} className={`text-xs ${textPrimary}`}>{f}</p>
                 ))}
               </div>
 
-              {/* Sélecteur de plan */}
+              {/* Sélecteur Mensuel / Annuel */}
               <div className="flex gap-2 mb-4">
                 <button onClick={() => setSelectedPlan("monthly")}
                   className={`flex-1 rounded-xl border-2 p-3 text-center transition active:scale-95 ${selectedPlan === "monthly" ? "border-sky-500 bg-sky-50" : `border-transparent ${dark ? "bg-gray-800" : "bg-slate-100"}`}`}>
@@ -543,7 +538,7 @@ export default function Home() {
                 </button>
                 <button onClick={() => setSelectedPlan("annual")}
                   className={`flex-1 rounded-xl border-2 p-3 text-center transition active:scale-95 relative ${selectedPlan === "annual" ? "border-sky-500 bg-sky-50" : `border-transparent ${dark ? "bg-gray-800" : "bg-slate-100"}`}`}>
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
                     {t.annualSaving}
                   </span>
                   <p className={`text-xs font-bold ${selectedPlan === "annual" ? "text-sky-600" : textPrimary}`}>{t.annualPlan}</p>
@@ -551,11 +546,9 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Bouton paiement Stripe */}
-              <a
-                href={selectedPlan === "monthly" ? STRIPE_MONTHLY : STRIPE_ANNUAL}
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Bouton Stripe */}
+              <a href={selectedPlan === "monthly" ? STRIPE_MONTHLY : STRIPE_ANNUAL}
+                target="_blank" rel="noopener noreferrer"
                 className="block text-center bg-sky-500 text-white text-sm font-bold py-3 rounded-xl hover:bg-sky-600 active:scale-95 transition shadow-sm">
                 {t.choosePlan} →
               </a>

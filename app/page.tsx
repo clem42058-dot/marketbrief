@@ -13,7 +13,7 @@ const TRANSLATIONS = {
     noFavNews: "Aucune news pour", tryRefresh: "Essaie de rafraîchir",
     indices: "Indices boursiers", crypto: "Crypto",
     myAssets: "Mes actifs suivis", premium: "✨ Passe à Premium",
-    premiumSub: "+5 news · Sans pub · 2,99€/mois",
+    premiumSub: "Sans pub · 20 news · Alertes breaking",
     ad: "Pub", adText: "📣 Ouvrez un compte trading gratuit",
     privacy: "Politique de confidentialité", legal: "Mentions légales",
     settingsTitle: "Réglages", appearance: "Apparence", darkMode: "Mode sombre",
@@ -21,6 +21,13 @@ const TRANSLATIONS = {
     languageDesc: "Choisir la langue de l'interface",
     settingsInfo: "Les réglages sont sauvegardés automatiquement.",
     close: "Fermer", discoverPremium: "Découvrir Premium",
+    monthlyPlan: "Mensuel", annualPlan: "Annuel",
+    monthlyPrice: "9,99€/mois", annualPrice: "79,99€/an",
+    annualSaving: "Économise 40%", choosePlan: "Choisir ce plan",
+    premiumFeature1: "✅ 20 news par jour",
+    premiumFeature2: "✅ Sans publicité",
+    premiumFeature3: "✅ Alertes breaking news",
+    premiumFeature4: "✅ Accès prioritaire",
   },
   en: {
     home: "Home", markets: "Markets", favorites: "Favorites", settings: "Settings",
@@ -32,7 +39,7 @@ const TRANSLATIONS = {
     noFavNews: "No news for", tryRefresh: "Try refreshing",
     indices: "Stock indices", crypto: "Crypto",
     myAssets: "My tracked assets", premium: "✨ Go Premium",
-    premiumSub: "+5 news · No ads · €2.99/month",
+    premiumSub: "No ads · 20 news · Breaking alerts",
     ad: "Ad", adText: "📣 Open a free demo trading account",
     privacy: "Privacy Policy", legal: "Terms of Use",
     settingsTitle: "Settings", appearance: "Appearance", darkMode: "Dark mode",
@@ -40,6 +47,13 @@ const TRANSLATIONS = {
     languageDesc: "Choose interface language",
     settingsInfo: "Settings are saved automatically.",
     close: "Close", discoverPremium: "Discover Premium",
+    monthlyPlan: "Monthly", annualPlan: "Annual",
+    monthlyPrice: "€9.99/month", annualPrice: "€79.99/year",
+    annualSaving: "Save 40%", choosePlan: "Choose this plan",
+    premiumFeature1: "✅ 20 news per day",
+    premiumFeature2: "✅ No advertising",
+    premiumFeature3: "✅ Breaking news alerts",
+    premiumFeature4: "✅ Priority access",
   },
 };
 
@@ -109,6 +123,10 @@ const SYMBOL_LABELS: Record<string, { name: string; sub: string; unit: string }>
   "SOL-USD": { name: "Solana",   sub: "SOL/USD",   unit: "$" },
 };
 
+// ⚠️ Liens Stripe — remplace par les vrais liens quand tu passes en mode live
+const STRIPE_MONTHLY = "https://buy.stripe.com/test_dRm6oG6UgeHt2tvgwuenS00";
+const STRIPE_ANNUAL  = "https://buy.stripe.com/test_7sYbJ0emIfLx7NP1BAenS01";
+
 function Spark({ up }: { up: boolean }) {
   const color = up ? "#16a34a" : "#dc2626";
   const points = up ? "0,18 8,14 16,16 24,10 32,12 40,6 48,8 56,4 64,2" : "0,2 8,6 16,4 24,8 32,6 40,12 48,10 56,14 64,18";
@@ -144,10 +162,10 @@ export default function Home() {
   const [showAd, setShowAd] = useState(false);
   const [dark, setDark] = useState(false);
   const [lang, setLang] = useState<Lang>("fr");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("annual");
 
   const t = TRANSLATIONS[lang];
 
-  // ✅ ONESIGNAL — initialisation au démarrage
   useEffect(() => {
     OneSignal.init({
       appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
@@ -196,7 +214,7 @@ export default function Home() {
       const data = await res.json();
       const raw: NewsItem[] = (data.articles || [])
         .filter((a: Article) => a.title && a.description && !a.title.includes("[Removed]"))
-        .slice(0, isPremium ? 15 : 10)
+        .slice(0, isPremium ? 20 : 10)
         .map((a: Article) => {
           const text = a.title + " " + (a.description || "");
           const mins = Math.floor((Date.now() - new Date(a.publishedAt).getTime()) / 60000);
@@ -233,36 +251,24 @@ export default function Home() {
   const navBg = dark ? "bg-gray-900 border-gray-800" : "bg-white border-slate-200";
 
   const NAV_ITEMS = [
-    {
-      id: "home" as Tab, label: t.home,
-      icon: (active: boolean) => (
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
-          <path d="M9 21V12h6v9"/>
-        </svg>
-      ),
-    },
-    {
-      id: "markets" as Tab, label: t.markets,
-      icon: (active: boolean) => (
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
-          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-          <polyline points="16 7 22 7 22 13"/>
-        </svg>
-      ),
-    },
-    {
-      id: "favorites" as Tab, label: t.favorites,
-      icon: (active: boolean) => (
-        <svg width="20" height="20" fill={active ? "#0ea5e9" : "none"} viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      ),
-    },
-    {
-      id: "settings" as Tab, label: t.settings,
-      icon: (active: boolean) => <SettingsIcon active={active} dark={dark} />,
-    },
+    { id: "home" as Tab, label: t.home, icon: (active: boolean) => (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
+        <path d="M9 21V12h6v9"/>
+      </svg>
+    )},
+    { id: "markets" as Tab, label: t.markets, icon: (active: boolean) => (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+        <polyline points="16 7 22 7 22 13"/>
+      </svg>
+    )},
+    { id: "favorites" as Tab, label: t.favorites, icon: (active: boolean) => (
+      <svg width="20" height="20" fill={active ? "#0ea5e9" : "none"} viewBox="0 0 24 24" stroke={active ? "#0ea5e9" : dark ? "#6b7280" : "#94a3b8"} strokeWidth="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    )},
+    { id: "settings" as Tab, label: t.settings, icon: (active: boolean) => <SettingsIcon active={active} dark={dark} /> },
   ];
 
   return (
@@ -381,7 +387,8 @@ export default function Home() {
                   </div>
                 ))}
                 {!isPremium && (
-                  <div className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-3 text-center mt-1">
+                  <div onClick={() => setTab("settings")}
+                    className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-3 text-center mt-1 cursor-pointer hover:shadow-md transition">
                     <p className="text-xs text-sky-700 font-medium mb-1">{t.premium}</p>
                     <p className="text-xs text-sky-500">{t.premiumSub}</p>
                   </div>
@@ -486,6 +493,7 @@ export default function Home() {
           <div className={`flex-1 ${bg} overflow-y-auto p-4`}>
             <p className={`text-lg font-bold mb-4 mt-1 ${textPrimary}`}>{t.settingsTitle}</p>
 
+            {/* Apparence */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>{t.appearance}</p>
             <div className={`${card} rounded-xl border p-4 mb-4`}>
               <div className="flex items-center justify-between">
@@ -500,6 +508,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Langue */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>{t.language}</p>
             <div className={`${card} rounded-xl border p-4 mb-4`}>
               <p className={`text-sm font-medium mb-3 ${textPrimary}`}>🌍 {t.languageDesc}</p>
@@ -513,13 +522,43 @@ export default function Home() {
               </div>
             </div>
 
+            {/* PREMIUM */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>Premium</p>
-            <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl p-4 mb-4">
-              <p className="text-white font-bold mb-1">{t.premium}</p>
-              <p className="text-sky-100 text-xs mb-3">{t.premiumSub}</p>
-              <button className="bg-white text-sky-600 text-sm font-bold px-4 py-2 rounded-xl w-full active:scale-95 transition">
-                {t.discoverPremium}
-              </button>
+            <div className={`${card} rounded-xl border p-4 mb-3`}>
+
+              {/* Avantages */}
+              <p className={`text-sm font-bold mb-3 ${textPrimary}`}>✨ {t.premium}</p>
+              <div className="flex flex-col gap-1.5 mb-4">
+                {[t.premiumFeature1, t.premiumFeature2, t.premiumFeature3, t.premiumFeature4].map((f, i) => (
+                  <p key={i} className={`text-xs ${textPrimary}`}>{f}</p>
+                ))}
+              </div>
+
+              {/* Sélecteur de plan */}
+              <div className="flex gap-2 mb-4">
+                <button onClick={() => setSelectedPlan("monthly")}
+                  className={`flex-1 rounded-xl border-2 p-3 text-center transition active:scale-95 ${selectedPlan === "monthly" ? "border-sky-500 bg-sky-50" : `border-transparent ${dark ? "bg-gray-800" : "bg-slate-100"}`}`}>
+                  <p className={`text-xs font-bold ${selectedPlan === "monthly" ? "text-sky-600" : textPrimary}`}>{t.monthlyPlan}</p>
+                  <p className={`text-sm font-bold mt-1 ${selectedPlan === "monthly" ? "text-sky-600" : textPrimary}`}>{t.monthlyPrice}</p>
+                </button>
+                <button onClick={() => setSelectedPlan("annual")}
+                  className={`flex-1 rounded-xl border-2 p-3 text-center transition active:scale-95 relative ${selectedPlan === "annual" ? "border-sky-500 bg-sky-50" : `border-transparent ${dark ? "bg-gray-800" : "bg-slate-100"}`}`}>
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                    {t.annualSaving}
+                  </span>
+                  <p className={`text-xs font-bold ${selectedPlan === "annual" ? "text-sky-600" : textPrimary}`}>{t.annualPlan}</p>
+                  <p className={`text-sm font-bold mt-1 ${selectedPlan === "annual" ? "text-sky-600" : textPrimary}`}>{t.annualPrice}</p>
+                </button>
+              </div>
+
+              {/* Bouton paiement Stripe */}
+              <a
+                href={selectedPlan === "monthly" ? STRIPE_MONTHLY : STRIPE_ANNUAL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center bg-sky-500 text-white text-sm font-bold py-3 rounded-xl hover:bg-sky-600 active:scale-95 transition shadow-sm">
+                {t.choosePlan} →
+              </a>
             </div>
 
             <p className={`text-xs text-center ${textSecondary}`}>{t.settingsInfo}</p>

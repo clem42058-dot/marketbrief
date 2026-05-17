@@ -18,7 +18,8 @@ const TRANSLATIONS = {
     myAssets: "Mes actifs suivis", premium: "✨ Passe à Premium",
     premiumSub: "Sans pub · 20 news · Alertes breaking",
     ad: "Pub", adText: "📣 Ouvrez un compte trading gratuit",
-    privacy: "Politique de confidentialité", legal: "Mentions légales",
+    privacy: "Confidentialité", legal: "Mentions légales",
+    about: "À propos", blog: "Blog", contact: "Contact",
     settingsTitle: "Réglages", appearance: "Apparence", darkMode: "Mode sombre",
     darkModeDesc: "Interface sombre pour les yeux", language: "Langue",
     languageDesc: "Choisir la langue de l'interface",
@@ -44,7 +45,8 @@ const TRANSLATIONS = {
     myAssets: "My tracked assets", premium: "✨ Go Premium",
     premiumSub: "No ads · 20 news · Breaking alerts",
     ad: "Ad", adText: "📣 Open a free demo trading account",
-    privacy: "Privacy Policy", legal: "Terms of Use",
+    privacy: "Privacy", legal: "Terms of Use",
+    about: "About", blog: "Blog", contact: "Contact",
     settingsTitle: "Settings", appearance: "Appearance", darkMode: "Dark mode",
     darkModeDesc: "Easy on the eyes", language: "Language",
     languageDesc: "Choose interface language",
@@ -489,8 +491,6 @@ export default function Home() {
         {tab === "settings" && (
           <div className={`flex-1 ${bg} overflow-y-auto p-4`}>
             <p className={`text-lg font-bold mb-4 mt-1 ${textPrimary}`}>{t.settingsTitle}</p>
-
-            {/* Apparence */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>{t.appearance}</p>
             <div className={`${card} rounded-xl border p-4 mb-4`}>
               <div className="flex items-center justify-between">
@@ -504,8 +504,6 @@ export default function Home() {
                 </button>
               </div>
             </div>
-
-            {/* Langue */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>{t.language}</p>
             <div className={`${card} rounded-xl border p-4 mb-4`}>
               <p className={`text-sm font-medium mb-3 ${textPrimary}`}>🌍 {t.languageDesc}</p>
@@ -518,8 +516,6 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
-            {/* Premium */}
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${textSecondary}`}>Premium</p>
             <div className={`${card} rounded-xl border p-4 mb-3`}>
               <p className={`text-sm font-bold mb-3 ${textPrimary}`}>{t.premium}</p>
@@ -528,8 +524,6 @@ export default function Home() {
                   <p key={i} className={`text-xs ${textPrimary}`}>{f}</p>
                 ))}
               </div>
-
-              {/* Sélecteur Mensuel / Annuel */}
               <div className="flex gap-2 mb-4">
                 <button onClick={() => setSelectedPlan("monthly")}
                   className={`flex-1 rounded-xl border-2 p-3 text-center transition active:scale-95 ${selectedPlan === "monthly" ? "border-sky-500 bg-sky-50" : `border-transparent ${dark ? "bg-gray-800" : "bg-slate-100"}`}`}>
@@ -545,15 +539,12 @@ export default function Home() {
                   <p className={`text-sm font-bold mt-1 ${selectedPlan === "annual" ? "text-sky-600" : textPrimary}`}>{t.annualPrice}</p>
                 </button>
               </div>
-
-              {/* Bouton Stripe */}
               <a href={selectedPlan === "monthly" ? STRIPE_MONTHLY : STRIPE_ANNUAL}
                 target="_blank" rel="noopener noreferrer"
                 className="block text-center bg-sky-500 text-white text-sm font-bold py-3 rounded-xl hover:bg-sky-600 active:scale-95 transition shadow-sm">
                 {t.choosePlan} →
               </a>
             </div>
-
             <p className={`text-xs text-center ${textSecondary}`}>{t.settingsInfo}</p>
           </div>
         )}
@@ -567,11 +558,15 @@ export default function Home() {
           </div>
         )}
 
-        {/* LIEN PRIVACY */}
-        <div className={`${navBg} px-4 py-2 flex justify-center gap-4 border-t flex-shrink-0`}>
+        {/* FOOTER LIENS */}
+        <div className={`${navBg} px-4 py-2 flex justify-center flex-wrap gap-3 border-t flex-shrink-0`}>
+          <a href="/about" className={`text-xs hover:text-sky-500 transition ${textSecondary}`}>{t.about}</a>
+          <span className={textSecondary}>·</span>
+          <a href="/blog" className={`text-xs hover:text-sky-500 transition ${textSecondary}`}>{t.blog}</a>
+          <span className={textSecondary}>·</span>
+          <a href="/contact" className={`text-xs hover:text-sky-500 transition ${textSecondary}`}>{t.contact}</a>
+          <span className={textSecondary}>·</span>
           <a href="/privacy" className={`text-xs hover:text-sky-500 transition ${textSecondary}`}>{t.privacy}</a>
-          <span className={textSecondary}>|</span>
-          <a href="/privacy" className={`text-xs hover:text-sky-500 transition ${textSecondary}`}>{t.legal}</a>
         </div>
 
         {/* BOTTOM NAV */}

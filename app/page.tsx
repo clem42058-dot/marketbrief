@@ -557,7 +557,28 @@ export default function Home() {
             <span className="text-sky-500 text-[10px] cursor-pointer">✕</span>
           </div>
         )}
-       
+
+        {/* SEO - Contenu statique visible par Google uniquement */}
+        <div className="sr-only">
+          <h1>MarketBrief - Briefing financier quotidien gratuit</h1>
+          <p>MarketBrief est une application web gratuite de briefing financier quotidien. Suivez les marchés financiers en temps réel chaque matin en moins de 2 minutes.</p>
+          <h2>Actualités financières du jour</h2>
+          <p>Les 10 news finance les plus importantes chaque matin : Fed, inflation, earnings, crypto, énergie, tech. Sources : Reuters, Bloomberg, Financial Times.</p>
+          <h2>Indices boursiers en temps réel</h2>
+          <p>S&P 500, NASDAQ, CAC 40, DAX mis à jour en continu. Variations en pourcentage, indicateurs visuels verts et rouges.</p>
+          <h2>Cryptomonnaies</h2>
+          <p>Bitcoin, Ethereum et Solana suivis en temps réel via Yahoo Finance. Prix actualisés et variations quotidiennes.</p>
+          <h2>Fonctionnalités gratuites</h2>
+          <ul>
+            <li>Breaking News financières classées par importance</li>
+            <li>Impact marché positif, négatif ou neutre sur chaque article</li>
+            <li>Catégories Tech, Crypto, Macro, Énergie, Finance, Entreprises</li>
+            <li>Interface disponible en français et en anglais</li>
+            <li>Mode sombre pour le confort de lecture</li>
+            <li>Aucune inscription requise, entièrement gratuit</li>
+          </ul>
+          <p>MarketBrief est la solution idéale pour les investisseurs débutants, traders et personnes souhaitant comprendre les marchés financiers rapidement chaque matin.</p>
+        </div>
 
         {/* FOOTER LIENS */}
         <div className={`${navBg} px-4 py-2 flex justify-center flex-wrap gap-3 border-t flex-shrink-0`}>

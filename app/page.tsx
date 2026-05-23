@@ -557,6 +557,7 @@ export default function Home() {
             <span className="text-sky-500 text-[10px] cursor-pointer">✕</span>
           </div>
         )}
+       
 
         {/* FOOTER LIENS */}
         <div className={`${navBg} px-4 py-2 flex justify-center flex-wrap gap-3 border-t flex-shrink-0`}>
